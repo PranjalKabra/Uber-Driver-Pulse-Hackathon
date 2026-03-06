@@ -5,6 +5,7 @@ import com.uber.models.*;
 import com.uber.repository.*;
 import com.uber.service.*;
 import com.uber.strategy.*;
+import com.uber.service.RideRequestGenerator;
 
 import java.time.LocalTime;
 import java.util.List;
@@ -35,26 +36,24 @@ public class Main {
         LocalTime shiftEnd   = shiftStart.plusHours(8);
         shiftService.startShift(driver, shiftStart, shiftEnd);
 
-        RideRequest req1 = new RideRequest(
-                new Location(28.6139, 77.2090, "Connaught Place"),
-                new Location(28.5355, 77.3910, "Noida Sector 18"),
-                250.0, 18.5, 35
-        );
-        RideRequest req2 = new RideRequest(
-                new Location(28.7041, 77.1025, "Civil Lines"),
-                new Location(28.6280, 77.2190, "ITO"),
-                120.0, 9.0, 20
-        );
-        RideRequest req3 = new RideRequest(
-                new Location(28.5495, 77.2686, "Lajpat Nagar"),
-                new Location(28.4595, 77.0266, "Dwarka Sector 21"),
-                310.0, 24.0, 45
-        );
-        rideRequestRepo.add(req1);
-        rideRequestRepo.add(req2);
-        rideRequestRepo.add(req3);
+        List<RideRequest> generatedRides = RideRequestGenerator.generate();
+        generatedRides.forEach(rideRequestRepo::add);
+
         System.out.println("\n=== AVAILABLE RIDES ===");
-        rideRequestRepo.getAll().forEach(System.out::println);
+        if (driver.hasOngoingRide()) {
+            System.out.println("You are already on an active ride. " +
+                    "Complete your current trip before viewing new rides.");
+        } else {
+            List<RideRequest> available = rideRequestRepo.getAll();
+            System.out.printf("  %d rides available near you:%n", available.size());
+            for (int i = 0; i < available.size(); i++) {
+                System.out.printf("  %d. %s%n", i + 1, available.get(i));
+            }
+        }
+
+        RideRequest req1 = rideRequestRepo.getAll().get(0);
+        RideRequest req2 = rideRequestRepo.getAll().get(1);
+        RideRequest req3 = rideRequestRepo.getAll().get(2);
 
         System.out.println("\n=== RIDE 1: SUGGEST & ACCEPT ===");
         Ride ride1 = rideService.acceptRide(driver, req1);

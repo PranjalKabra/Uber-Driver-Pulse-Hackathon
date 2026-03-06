@@ -12,16 +12,16 @@ import java.util.stream.Collectors;
 
 public class Driver {
 
-    private final String      id;
-    private final String      name;
-    private       Shift       currentShift;
-    private       EarningGoal earningGoal;
-    private final List<Ride>  rides;
+    private final String id;
+    private final String name;
+    private Shift currentShift;
+    private EarningGoal earningGoal;
+    private final List<Ride> rides;
 
     public Driver(String name) {
-        this.id     = UUID.randomUUID().toString().substring(0, 8);
-        this.name   = name;
-        this.rides  = new ArrayList<>();
+        this.id = UUID.randomUUID().toString().substring(0, 8);
+        this.name = name;
+        this.rides = new ArrayList<>();
     }
 
     public void addRide(Ride ride) {
@@ -47,10 +47,13 @@ public class Driver {
         res += ((double)((double)ongoing.getActualFare()/(double)ongoing.getDuration())) * tripPassed;
         return res;
     }
+    public boolean hasOngoingRide(){
+        return (rides.stream().anyMatch((r->r.getStatus() == RideStatus.ONGOING)));
+    }
 
-    public String      getId()           { return id; }
-    public String      getName()         { return name; }
-    public Shift       getCurrentShift() { return currentShift; }
+    public String getId()           { return id; }
+    public String getName()         { return name; }
+    public Shift  getCurrentShift() { return currentShift; }
     public EarningGoal getEarningGoal()  { return earningGoal; }
     public List<Ride>  getRides()        { return Collections.unmodifiableList(rides); }
 
