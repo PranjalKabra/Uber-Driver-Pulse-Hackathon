@@ -1,3 +1,1 @@
 ride_id,driver_id,duration,distance,start_location,end_location,fare,motion_flag_count,audio_flag_count,flagged_moment_count,stress_rating,stress_rating_label
-5e678fe9,dca9b04f,0,9.9000,Juhu,Chembur,153.9000,13,1,1,N/A,N/A
-38aacf1e,dca9b04f,0,6.4000,Powai,Mulund,100.4000,9,0,0,N/A,N/A

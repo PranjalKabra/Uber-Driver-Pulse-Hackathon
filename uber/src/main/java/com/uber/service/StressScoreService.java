@@ -3,9 +3,12 @@ package com.uber.service;
 import com.uber.enums.AudioRating;
 import com.uber.enums.MotionRating;
 import com.uber.models.*;
+import org.springframework.stereotype.Service;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
 public class StressScoreService {
 
     private static final double AUDIO_WEIGHT  = 0.4;
@@ -33,7 +36,7 @@ public class StressScoreService {
     public double calcMotionScore(MotionData motion) {
         double speedScore = (motion.getSpeed() / 120.0) * 0.4;
         double accelScore = (motion.getAcceleration() / 6.0) * 0.6;
-        return Math.min(1.0, speedScore + accelScore);  // normalized to 0–1
+        return Math.min(1.0, speedScore + accelScore);
     }
 
     public MotionRating classifyMotion(double motionScore) {
@@ -44,7 +47,6 @@ public class StressScoreService {
         return (AUDIO_WEIGHT * audioScore) + (MOTION_WEIGHT * motionScore);
     }
 
-    // Takes a reading + driver context → full StressSnapshot with EarningVelocity baked in
     public StressSnapshot takeSnapshot(SensorReading reading, Driver driver, Shift shift, Ride ride) {
         double audio    = calcAudioScore(reading.getAudioData());
         double motion   = calcMotionScore(reading.getMotionData());
