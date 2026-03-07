@@ -1,66 +1,61 @@
 package com.uber.service;
 
 import com.uber.enums.AudioRating;
+import com.uber.enums.MotionRating;
 import com.uber.models.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class StressScoreService {
 
-    // Audio weight : Motion weight in combined score
     private static final double AUDIO_WEIGHT  = 0.4;
     private static final double MOTION_WEIGHT = 0.6;
 
-    // Normalize decibels (assumed range 30–120 dB) to 0–100
+    private final EarningVelocityService earningVelocityService;
+
+    public StressScoreService(EarningVelocityService earningVelocityService) {
+        this.earningVelocityService = earningVelocityService;
+    }
+
     public double calcAudioScore(AudioData audio) {
-        double db = audio.getDecibels();           // Expected: 30–120 dB
-        double seconds = audio.getSustainedSeconds(); // Expected: 2–60 s
-
-        // Normalize each to [0.0, 1.0]
-        double dbScore = (db - 30.0) / 90.0;        // 30 dB = 0.0,  120 dB = 1.0
-        double timeScore = (seconds - 2.0) / 58.0;    //  2 s  = 0.0,   60 s  = 1.0
-
-        // Decibels carry more perceptual weight than duration (65 / 35 split)
-        double rawScore = (0.65 * dbScore) + (0.35 * timeScore);
-
-        return Math.min(1.0, Math.max(0.0, rawScore));
-    }
-    public String classifyAudioScore(AudioData audio) {
-        double score = calcAudioScore(audio);
-        AudioRating level = AudioRating.from(score);
-
-        switch (level) {
-            case QUIET        -> System.out.println("All calm.");
-            case CONVERSATIONAL -> System.out.println("Normal noise.");
-            case ARGUMENT     -> System.out.println("Getting loud!");
-            case VERY_LOUD    -> System.out.println("High disturbance!");
-        }
+        double dbScore   = (audio.getDecibels() - 30.0) / 90.0;
+        double timeScore = (audio.getSustainedSeconds() - 2.0) / 58.0;
+        double raw       = (0.65 * dbScore) + (0.35 * timeScore);
+        return Math.min(1.0, Math.max(0.0, raw));
     }
 
-    // Speed contributes 40% of motion score, acceleration 60%
+    public AudioRating classifyAudio(double audioScore) {
+        return AudioRating.from(audioScore);
+    }
+
     public double calcMotionScore(MotionData motion) {
-        double speedScore = Math.min(100, (motion.getSpeed() / 120.0) * 40);
-        double accelScore = Math.min(100, (motion.getAcceleration() / 6.0) * 60);
-        return Math.min(100, speedScore + accelScore);
+        double speedScore = (motion.getSpeed() / 120.0) * 0.4;
+        double accelScore = (motion.getAcceleration() / 6.0) * 0.6;
+        return Math.min(1.0, speedScore + accelScore);  // normalized to 0–1
+    }
+
+    public MotionRating classifyMotion(double motionScore) {
+        return MotionRating.from(motionScore);
     }
 
     public double calcCombined(double audioScore, double motionScore) {
         return (AUDIO_WEIGHT * audioScore) + (MOTION_WEIGHT * motionScore);
     }
 
-    // Produces a StressSnapshot from a single SensorReading
-    public StressSnapshot takeSnapshot(SensorReading reading) {
-        double audio = calcAudioScore(reading.getAudioData());
-        double motion = calcMotionScore(reading.getMotionData());
+    // Takes a reading + driver context → full StressSnapshot with EarningVelocity baked in
+    public StressSnapshot takeSnapshot(SensorReading reading, Driver driver, Shift shift) {
+        double audio    = calcAudioScore(reading.getAudioData());
+        double motion   = calcMotionScore(reading.getMotionData());
         double combined = calcCombined(audio, motion);
-        return new StressSnapshot(reading.getTimestamp(), audio, motion, combined);
+        EarningVelocity ev = earningVelocityService.calculate(driver, shift, reading.getTimestamp());
+        return new StressSnapshot(reading.getTimestamp(), audio, motion, combined, ev);
     }
 
-    // Processes every reading in a list → list of snapshots
-    public List<StressSnapshot> processAllReadings(List<SensorReading> readings) {
+    public List<StressSnapshot> processAllReadings(List<SensorReading> readings,
+                                                   Driver driver, Shift shift) {
         List<StressSnapshot> snapshots = new ArrayList<>();
         for (SensorReading reading : readings) {
-            snapshots.add(takeSnapshot(reading));
+            snapshots.add(takeSnapshot(reading, driver, shift));
         }
         return snapshots;
     }

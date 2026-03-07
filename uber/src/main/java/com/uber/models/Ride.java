@@ -46,6 +46,18 @@ public class Ride {
         return (int) Duration.between(startTime, endTime).toMinutes();
     }
 
+    public long getAudioFlagCount() {
+        return stressSnapshots.stream().filter(StressSnapshot::isAudioFlagged).count();
+    }
+
+    public long getMotionFlagCount() {
+        return stressSnapshots.stream().filter(StressSnapshot::isMotionFlagged).count();
+    }
+
+    public long getTotalFlagCount() {
+        return stressSnapshots.stream().filter(StressSnapshot::isTotalFlagged).count();
+    }
+
     public String              getId()              { return id; }
     public Driver              getDriver()          { return driver; }
     public RideRequest         getRequest()         { return request; }

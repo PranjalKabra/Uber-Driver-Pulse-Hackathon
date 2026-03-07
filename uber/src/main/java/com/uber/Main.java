@@ -7,6 +7,7 @@ import com.uber.service.*;
 import com.uber.strategy.*;
 import com.uber.service.RideRequestGenerator;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -21,10 +22,9 @@ public class Main {
         ShiftService           shiftService     = new ShiftService(driverRepo);
         RideService            rideService      = new RideService(rideRepo, rideRequestRepo, driverRepo);
         SensorSimulator        simulator        = new SensorSimulator();
-        StressScoreService     scoreService     = new StressScoreService();
         StressRatingService    ratingService    = new StressRatingService(new AverageStressStrategy());
         EarningVelocityService velocityService  = new EarningVelocityService();
-
+        StressScoreService  scoreService  = new StressScoreService(velocityService);
 
         Driver driver = new Driver("Rahul Verma");
         driver.setEarningGoal(new EarningGoal(1000.0));  // ₹1000 target
@@ -61,13 +61,13 @@ public class Main {
         List<SensorReading> readings1 = simulator.simulateFullRide(ride1, estimatedMinutes);
         readings1.forEach(ride1::addSensorReading);
 
-        List<StressSnapshot> snapshots1 = scoreService.processAllReadings(readings1);
+        List<StressSnapshot> snapshots1 = scoreService.processAllReadings(readings1, driver, driver.getCurrentShift());
         snapshots1.forEach(ride1::addStressSnapshot);
         System.out.println("Snapshots generated: " + snapshots1.size());
         snapshots1.forEach(s -> System.out.printf(
                 "  t=%s | audio=%.1f | motion=%.1f | combined=%.1f (%s)%n",
                 s.getTimestamp().toLocalTime(), s.getAudioScore(),
-                s.getMotionScore(), s.getCombinedScore(), s.getLabel()
+                s.getMotionScore(), s.getCombinedScore(), s.getCombinedLevel()
         ));
 
         // ── 8. COMPLETE RIDE 1, RATE STRESS, UPDATE EARNINGS ─────────
@@ -75,7 +75,7 @@ public class Main {
         rideService.completeRide(ride1);
         ratingService.rateRide(ride1);
         driver.getEarningGoal().addEarning(ride1.getActualFare());
-        velocityService.calculate(driver, driver.getCurrentShift());
+        velocityService.calculate(driver, driver.getCurrentShift(), LocalDateTime.now());
 
         // ── 9. SUGGEST → REJECT RIDE 2 ───────────────────────────────
         System.out.println("\n=== RIDE 2: SUGGEST & REJECT ===");
@@ -88,13 +88,13 @@ public class Main {
 
         List<SensorReading> readings3  = simulator.simulateFullRide(ride3, req3.getEstimatedDuration());
         readings3.forEach(ride3::addSensorReading);
-        List<StressSnapshot> snapshots3 = scoreService.processAllReadings(readings3);
+        List<StressSnapshot> snapshots3 = scoreService.processAllReadings(readings3, driver, driver.getCurrentShift());
         snapshots3.forEach(ride3::addStressSnapshot);
 
         rideService.completeRide(ride3);
         ratingService.rateRide(ride3);
         driver.getEarningGoal().addEarning(ride3.getActualFare());
-        velocityService.calculate(driver, driver.getCurrentShift());
+        velocityService.calculate(driver, driver.getCurrentShift(), LocalDateTime.now());
 
         // ── 11. FINAL REPORT ──────────────────────────────────────────
         System.out.println("\n=== FINAL REPORT ===");
