@@ -35,6 +35,7 @@ public class StressScoreService {
             case ARGUMENT     -> System.out.println("Getting loud!");
             case VERY_LOUD    -> System.out.println("High disturbance!");
         }
+        return level.toString();
     }
 
     // Speed contributes 40% of motion score, acceleration 60%
