@@ -1,5 +1,6 @@
 package com.uber.service;
 
+import com.uber.enums.AudioRating;
 import com.uber.models.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,9 +13,28 @@ public class StressScoreService {
 
     // Normalize decibels (assumed range 30–120 dB) to 0–100
     public double calcAudioScore(AudioData audio) {
-        double normalized = Math.min(100, Math.max(0, (audio.getDecibels() - 30) / 90.0 * 100));
+        double db = audio.getDecibels();           // Expected: 30–120 dB
+        double seconds = audio.getSustainedSeconds(); // Expected: 2–60 s
 
-        return normalized;
+        // Normalize each to [0.0, 1.0]
+        double dbScore = (db - 30.0) / 90.0;        // 30 dB = 0.0,  120 dB = 1.0
+        double timeScore = (seconds - 2.0) / 58.0;    //  2 s  = 0.0,   60 s  = 1.0
+
+        // Decibels carry more perceptual weight than duration (65 / 35 split)
+        double rawScore = (0.65 * dbScore) + (0.35 * timeScore);
+
+        return Math.min(1.0, Math.max(0.0, rawScore));
+    }
+    public String classifyAudioScore(AudioData audio) {
+        double score = calcAudioScore(audio);
+        AudioRating level = AudioRating.from(score);
+
+        switch (level) {
+            case QUIET        -> System.out.println("All calm.");
+            case CONVERSATIONAL -> System.out.println("Normal noise.");
+            case ARGUMENT     -> System.out.println("Getting loud!");
+            case VERY_LOUD    -> System.out.println("High disturbance!");
+        }
     }
 
     // Speed contributes 40% of motion score, acceleration 60%
