@@ -43,7 +43,7 @@ public class Driver {
                 .filter(r -> r.getStatus() == RideStatus.ONGOING)
                 .findFirst().orElse(null);
         if (ongoing == null) return res;
-        double tripPassed = Duration.between(ongoing.getStartTime(), currentTimestamp).toMinutes() / 60.0;
+        double tripPassed = Duration.between(ongoing.getStartTime(), currentTimestamp).toMinutes() ;
         res += (ongoing.getActualFare() / ongoing.getDuration()) * tripPassed;
         return res;
     }

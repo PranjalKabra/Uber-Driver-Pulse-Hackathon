@@ -7,6 +7,8 @@ import com.uber.models.RideRequest;
 import com.uber.repository.DriverRepository;
 import com.uber.repository.RideRepository;
 import com.uber.repository.RideRequestRepository;
+
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -27,6 +29,7 @@ public class RideService {
         Ride ride = new Ride(driver, request); // ✅ created here
         ride.setStatus(RideStatus.ONGOING);
         ride.setStartTime(LocalDateTime.now());
+        ride.setEndTime(LocalDateTime.now().plus(Duration.ofMinutes(request.getEstimatedDuration())));
         rideRequestRepo.remove(request.getId());
         rideRepo.save(ride);
         driver.addRide(ride);
