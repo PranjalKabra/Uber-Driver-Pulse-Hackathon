@@ -1,8 +1,11 @@
 package com.uber.repository;
 
 import com.uber.models.RideRequest;
+import org.springframework.stereotype.Repository; // ── CHANGE: added
+
 import java.util.*;
 
+@Repository 
 public class RideRequestRepository {
 
     private final List<RideRequest> available = new ArrayList<>();

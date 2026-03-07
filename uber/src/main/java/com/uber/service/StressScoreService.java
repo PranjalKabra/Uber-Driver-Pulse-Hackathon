@@ -3,18 +3,23 @@ package com.uber.service;
 import com.uber.enums.AudioRating;
 import com.uber.enums.MotionRating;
 import com.uber.models.*;
+import org.springframework.stereotype.Service;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
 public class StressScoreService {
 
     private static final double AUDIO_WEIGHT  = 0.4;
     private static final double MOTION_WEIGHT = 0.6;
 
     private final EarningVelocityService earningVelocityService;
+    private final CsvLogger csvLogger;
 
-    public StressScoreService(EarningVelocityService earningVelocityService) {
+    public StressScoreService(EarningVelocityService earningVelocityService, CsvLogger csvLogger) {
         this.earningVelocityService = earningVelocityService;
+        this.csvLogger = csvLogger;
     }
 
     public double calcAudioScore(AudioData audio) {
@@ -31,7 +36,7 @@ public class StressScoreService {
     public double calcMotionScore(MotionData motion) {
         double speedScore = (motion.getSpeed() / 120.0) * 0.4;
         double accelScore = (motion.getAcceleration() / 6.0) * 0.6;
-        return Math.min(1.0, speedScore + accelScore);  // normalized to 0–1
+        return Math.min(1.0, speedScore + accelScore);
     }
 
     public MotionRating classifyMotion(double motionScore) {
@@ -42,20 +47,23 @@ public class StressScoreService {
         return (AUDIO_WEIGHT * audioScore) + (MOTION_WEIGHT * motionScore);
     }
 
-    // Takes a reading + driver context → full StressSnapshot with EarningVelocity baked in
-    public StressSnapshot takeSnapshot(SensorReading reading, Driver driver, Shift shift) {
+    public StressSnapshot takeSnapshot(SensorReading reading, Driver driver, Shift shift, Ride ride) {
         double audio    = calcAudioScore(reading.getAudioData());
         double motion   = calcMotionScore(reading.getMotionData());
         double combined = calcCombined(audio, motion);
         EarningVelocity ev = earningVelocityService.calculate(driver, shift, reading.getTimestamp());
-        return new StressSnapshot(reading.getTimestamp(), audio, motion, combined, ev);
+        StressSnapshot snapshot = new StressSnapshot(reading.getTimestamp(), audio, motion, combined, ev);
+        csvLogger.logAudioReading(reading, snapshot, driver.getId());
+        csvLogger.logMotionReading(reading, snapshot, driver.getId());
+        csvLogger.logFlaggedMoment(snapshot, reading, ride);
+        return snapshot;
     }
 
     public List<StressSnapshot> processAllReadings(List<SensorReading> readings,
-                                                   Driver driver, Shift shift) {
+                                                   Driver driver, Shift shift, Ride ride) {
         List<StressSnapshot> snapshots = new ArrayList<>();
         for (SensorReading reading : readings) {
-            snapshots.add(takeSnapshot(reading, driver, shift));
+            snapshots.add(takeSnapshot(reading, driver, shift, ride));
         }
         return snapshots;
     }

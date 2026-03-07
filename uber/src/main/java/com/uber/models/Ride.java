@@ -11,14 +11,14 @@ import java.util.UUID;
 
 public class Ride {
 
-    private final String              id;
-    private final Driver              driver;
-    private final RideRequest         request;
-    private       RideStatus          status;
-    private       LocalDateTime       startTime;
-    private       LocalDateTime       endTime;
-    private       double              actualFare;
-    private       StressRating        stressRating;
+    private final String id;
+    private final Driver driver;
+    private final RideRequest request;
+    private RideStatus status;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+    private double actualFare;
+    private StressRating stressRating;
     private final List<SensorReading> sensorReadings;
     private final List<StressSnapshot> stressSnapshots;
 

@@ -3,8 +3,11 @@ package com.uber.service;
 import com.uber.models.Driver;
 import com.uber.models.Shift;
 import com.uber.repository.DriverRepository;
+import org.springframework.stereotype.Service;
+
 import java.time.LocalTime;
 
+@Service
 public class ShiftService {
 
     private final DriverRepository driverRepo;

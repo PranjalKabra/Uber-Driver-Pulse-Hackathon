@@ -2,20 +2,20 @@ package com.uber.service;
 
 import com.uber.enums.StressRating;
 import com.uber.models.Ride;
+import com.uber.strategy.AverageStressStrategy;
 import com.uber.strategy.StressRatingStrategy;
+import org.springframework.stereotype.Service;
 
+@Service
 public class StressRatingService {
 
-    private StressRatingStrategy strategy;
+    private StressRatingStrategy strategy = new AverageStressStrategy();
 
-    public StressRatingService(StressRatingStrategy strategy) {
-        this.strategy = strategy;
-    }
+    public StressRatingService() {}
 
-    // Rates a completed ride using the current strategy
     public StressRating rateRide(Ride ride) {
         if (ride.getStressSnapshots().isEmpty()) {
-            System.out.println("[StressRatingService] No snapshots found for ride " + ride.getId()
+            System.out.println("[StressRatingService] No snapshots for ride " + ride.getId()
                     + " — defaulting to LOW.");
             return StressRating.LOW;
         }
@@ -26,7 +26,6 @@ public class StressRatingService {
         return rating;
     }
 
-    // Swap strategy at runtime — Strategy Pattern in action
     public void setStrategy(StressRatingStrategy strategy) {
         System.out.println("[StressRatingService] Strategy switched to: " + strategy.getName());
         this.strategy = strategy;
