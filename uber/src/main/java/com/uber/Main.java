@@ -15,16 +15,17 @@ public class Main {
 
     public static void main(String[] args) {
 
-        DriverRepository      driverRepo      = new DriverRepository();
-        RideRepository        rideRepo        = new RideRepository();
+        DriverRepository driverRepo = new DriverRepository();
+        RideRepository rideRepo = new RideRepository();
         RideRequestRepository rideRequestRepo = new RideRequestRepository();
 
-        ShiftService           shiftService     = new ShiftService(driverRepo);
-        RideService            rideService      = new RideService(rideRepo, rideRequestRepo, driverRepo);
-        SensorSimulator        simulator        = new SensorSimulator();
-        StressRatingService    ratingService    = new StressRatingService(new AverageStressStrategy());
-        EarningVelocityService velocityService  = new EarningVelocityService();
-        StressScoreService  scoreService  = new StressScoreService(velocityService);
+        CsvLogger csvLogger = new CsvLogger();
+        ShiftService shiftService = new ShiftService(driverRepo);
+        RideService rideService = new RideService(rideRepo, rideRequestRepo, driverRepo, csvLogger);
+        SensorSimulator simulator = new SensorSimulator();
+        StressRatingService ratingService = new StressRatingService(new AverageStressStrategy());
+        EarningVelocityService velocityService = new EarningVelocityService(csvLogger);
+        StressScoreService scoreService = new StressScoreService(velocityService, csvLogger);
 
         Driver driver = new Driver("Rahul Verma");
         driver.setEarningGoal(new EarningGoal(1000.0));  // ₹1000 target
@@ -61,7 +62,7 @@ public class Main {
         List<SensorReading> readings1 = simulator.simulateFullRide(ride1, estimatedMinutes);
         readings1.forEach(ride1::addSensorReading);
 
-        List<StressSnapshot> snapshots1 = scoreService.processAllReadings(readings1, driver, driver.getCurrentShift());
+        List<StressSnapshot> snapshots1 = scoreService.processAllReadings(readings1, driver, driver.getCurrentShift(), ride1);
         snapshots1.forEach(ride1::addStressSnapshot);
         System.out.println("Snapshots generated: " + snapshots1.size());
         snapshots1.forEach(s -> System.out.printf(
@@ -86,9 +87,9 @@ public class Main {
         ratingService.setStrategy(new PeakStressStrategy());
         Ride ride3 = rideService.acceptRide(driver, req3);
 
-        List<SensorReading> readings3  = simulator.simulateFullRide(ride3, req3.getEstimatedDuration());
+        List<SensorReading> readings3 = simulator.simulateFullRide(ride3, req3.getEstimatedDuration());
         readings3.forEach(ride3::addSensorReading);
-        List<StressSnapshot> snapshots3 = scoreService.processAllReadings(readings3, driver, driver.getCurrentShift());
+        List<StressSnapshot> snapshots3 = scoreService.processAllReadings(readings3, driver, driver.getCurrentShift(), ride3);
         snapshots3.forEach(ride3::addStressSnapshot);
 
         rideService.completeRide(ride3);

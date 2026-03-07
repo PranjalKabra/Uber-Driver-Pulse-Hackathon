@@ -17,11 +17,13 @@ public class RideService {
     private final RideRepository        rideRepo;
     private final RideRequestRepository rideRequestRepo;
     private final DriverRepository driverRepo;
+    private final CsvLogger csvLogger;
 
-    public RideService(RideRepository rideRepo, RideRequestRepository rideRequestRepo, DriverRepository driverRepo) {
+    public RideService(RideRepository rideRepo, RideRequestRepository rideRequestRepo, DriverRepository driverRepo, CsvLogger csvLogger) {
         this.rideRepo = rideRepo;
         this.rideRequestRepo = rideRequestRepo;
         this.driverRepo = driverRepo;
+        this.csvLogger = csvLogger;
     }
 
     // NEW — Ride only born on acceptance
@@ -47,6 +49,9 @@ public class RideService {
         ride.setStatus(RideStatus.COMPLETED);
         ride.setEndTime(LocalDateTime.now());
         rideRepo.save(ride);
+
+        ride.getDriver().getEarningGoal().addEarning(ride.getActualFare());
+        csvLogger.logRideSummary(ride);
         System.out.printf("[RideService] Ride COMPLETED | ID: %s | Fare: ₹%.2f | Duration: %d min%n",
                 ride.getId(), ride.getActualFare(), ride.getDuration());
     }

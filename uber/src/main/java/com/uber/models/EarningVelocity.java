@@ -7,6 +7,7 @@ public class EarningVelocity {
 
     private final double        currentVelocity;   // ₹ earned per hour so far
     private final double        requiredVelocity;  // ₹ per hour needed to hit goal
+    private final double        velocityDelta;
     private final PaceStatus    paceStatus;
     private final LocalDateTime timestamp;
 
@@ -15,6 +16,7 @@ public class EarningVelocity {
                            PaceStatus paceStatus) {
         this.currentVelocity   = currentVelocity;
         this.requiredVelocity  = requiredVelocity;
+        this.velocityDelta    = currentVelocity - requiredVelocity;
         this.paceStatus        = paceStatus;
         this.timestamp         = LocalDateTime.now();
     }
@@ -30,4 +32,5 @@ public class EarningVelocity {
     public double        getRequiredVelocity()  { return requiredVelocity; }
     public PaceStatus    getPaceStatus()        { return paceStatus; }
     public LocalDateTime getTimestamp()         { return timestamp; }
+    public double        getVelocityDelta()    { return velocityDelta; }
 }

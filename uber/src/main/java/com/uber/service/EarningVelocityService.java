@@ -1,6 +1,7 @@
 package com.uber.service;
 
 import com.uber.enums.PaceStatus;
+import com.uber.enums.RideStatus;
 import com.uber.models.Driver;
 import com.uber.models.EarningVelocity;
 import com.uber.models.Shift;
@@ -10,6 +11,10 @@ import java.time.LocalDateTime;
 
 public class EarningVelocityService {
 
+    private final CsvLogger csvLogger;
+    public EarningVelocityService(CsvLogger csvLogger) {
+        this.csvLogger = csvLogger;
+    }
     // Called at regular intervals to recalculate pace
     public EarningVelocity calculate(Driver driver, Shift shift, LocalDateTime currentTimestamp) { // main function for calculation of earning velocity
         double earned = driver.getTotalEarned(currentTimestamp);
@@ -26,7 +31,7 @@ public class EarningVelocityService {
 
         // Update the goal's velocity snapshot
         driver.getEarningGoal().setEarningVelocity(ev);
-
+        csvLogger.logEarningVelocity(ev, driver, driver.getCurrentShift());
         System.out.println("[EarningVelocityService] " + ev.getSummary());
         return ev;
     }
