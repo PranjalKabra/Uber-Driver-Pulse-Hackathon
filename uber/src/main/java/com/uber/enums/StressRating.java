@@ -1,15 +1,15 @@
 package com.uber.enums;
 
 public enum StressRating {
-    LOW(0, 30),
-    MEDIUM(31, 60),
-    HIGH(61, 85),
-    CRITICAL(86, 100);
+    LOW(0, 0.30),
+    MEDIUM(31, 0.60),
+    HIGH(61, 0.85),
+    CRITICAL(86, 1.0);
 
-    private final int minScore;
-    private final int maxScore;
+    private final double minScore;
+    private final double maxScore;
 
-    StressRating(int minScore, int maxScore) {
+    StressRating(double minScore, double maxScore) {
         this.minScore = minScore;
         this.maxScore = maxScore;
     }
@@ -23,6 +23,6 @@ public enum StressRating {
         return CRITICAL;
     }
 
-    public int getMinScore() { return minScore; }
-    public int getMaxScore() { return maxScore; }
+    public double getMinScore() { return minScore; }
+    public double getMaxScore() { return maxScore; }
 }

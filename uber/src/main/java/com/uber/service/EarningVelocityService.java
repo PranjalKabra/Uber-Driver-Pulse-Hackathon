@@ -5,11 +5,14 @@ import com.uber.models.Driver;
 import com.uber.models.EarningVelocity;
 import com.uber.models.Shift;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 public class EarningVelocityService {
 
     // Called at regular intervals to recalculate pace
-    public EarningVelocity calculate(Driver driver, Shift shift) { // main function for calculation of earning velocity
-        double earned = driver.getTotalEarned();
+    public EarningVelocity calculate(Driver driver, Shift shift, LocalDateTime currentTimestamp) { // main function for calculation of earning velocity
+        double earned = driver.getTotalEarned(currentTimestamp);
         double target = driver.getEarningGoal().getTargetAmount();
         double hoursWorked = shift.getHoursWorked();
         double hoursLeft = shift.getHoursRemaining();
@@ -29,11 +32,11 @@ public class EarningVelocityService {
     }
 
     // Projected earnings if current pace continues until end of shift
-    public double getProjectedEarnings(Driver driver, Shift shift) {
+    public double getProjectedEarnings(Driver driver, Shift shift, LocalDateTime currentTimestamp) {
         double hoursWorked = shift.getHoursWorked();
         double totalShiftHours = shift.getTotalShiftHours();
         if (hoursWorked == 0) return 0.0;
-        double currentVelocity = driver.getTotalEarned() / hoursWorked;
+        double currentVelocity = driver.getTotalEarned(currentTimestamp) / hoursWorked;
         return currentVelocity * totalShiftHours;
     }
 
