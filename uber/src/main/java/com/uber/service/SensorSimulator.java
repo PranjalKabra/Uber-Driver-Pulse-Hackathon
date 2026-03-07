@@ -18,14 +18,6 @@ public class SensorSimulator {
         return new SensorReading(rideId, generateAudio(), generateMotion());
     }
 
-    public List<SensorReading> simulateFullRide(Ride ride, int minutes) {
-        List<SensorReading> readings = new ArrayList<>();
-        for (int i = 0; i < minutes; i += 2) {
-            readings.add(generateReading(ride.getId()));
-        }
-        return readings;
-    }
-
     private AudioData generateAudio() {
         double decibels         = 40 + random.nextDouble() * 70;
         double sustainedSeconds = random.nextDouble() * 20;

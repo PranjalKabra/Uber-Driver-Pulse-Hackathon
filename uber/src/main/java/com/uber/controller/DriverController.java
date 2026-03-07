@@ -48,6 +48,7 @@ public class DriverController {
     private final StressRatingService   ratingService;
     private final StressScoreService    scoreService;
     private final EarningVelocityService velocityService;
+    private final RideSimulationScheduler scheduler;
 
     public DriverController(DriverRepository driverRepo,
                             RideRepository rideRepo,
@@ -57,7 +58,8 @@ public class DriverController {
                             SensorSimulator simulator,
                             StressRatingService ratingService,
                             StressScoreService scoreService,
-                            EarningVelocityService velocityService) {
+                            EarningVelocityService velocityService,
+                            RideSimulationScheduler scheduler) {
         this.driverRepo      = driverRepo;
         this.rideRepo        = rideRepo;
         this.rideRequestRepo = rideRequestRepo;
@@ -67,6 +69,7 @@ public class DriverController {
         this.ratingService   = ratingService;
         this.scoreService    = scoreService;
         this.velocityService = velocityService;
+        this.scheduler   = scheduler;
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -145,19 +148,13 @@ public class DriverController {
         Ride ride = rideService.acceptRide(driver, request);
 
         // Simulate sensors + process stress (same as Main.java did)
-        List<SensorReading> readings = simulator.simulateFullRide(ride, request.getEstimatedDuration());
-        readings.forEach(ride::addSensorReading);
-
-        List<StressSnapshot> snapshots = scoreService.processAllReadings(
-                readings, driver, driver.getCurrentShift(), ride);
-        snapshots.forEach(ride::addStressSnapshot);
+        scheduler.startSimulation(ride, driver, driver.getCurrentShift());
 
         return ResponseEntity.ok(Map.of(
                 "rideId",        ride.getId(),
                 "from",          request.getPickupLocation().getLabel(),
                 "to",            request.getDropLocation().getLabel(),
                 "fare",          ride.getActualFare(),
-                "snapshotCount", snapshots.size(),
                 "message",       "Ride accepted and sensor data simulated"
         ));
     }
@@ -185,6 +182,7 @@ public class DriverController {
         Ride ride = rideRepo.findById(rideId);
         if (ride == null) return ResponseEntity.badRequest().body("Ride not found: " + rideId);
 
+        scheduler.stopSimulation(rideId);
         ratingService.rateRide(ride);
         rideService.completeRide(ride);
 
