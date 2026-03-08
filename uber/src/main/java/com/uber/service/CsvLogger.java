@@ -30,7 +30,7 @@ public class CsvLogger {
                 + "audio_score,audio_level,is_flagged", false);
         write(MOTION_LOG,  "log_id,ride_id,driver_id,timestamp,acc_x,acc_y,acc_z,acceleration,latitude,longitude,"
                 + "motion_score,motion_level,is_flagged", false);
-        write(RIDE_LOG,    "ride_id,driver_id,duration,distance,start_location,end_location,fare,"
+        write(RIDE_LOG,    "ride_id,driver_id,driver_name,duration,distance,start_location,end_location,fare,"
                 + "motion_flag_count,audio_flag_count,flagged_moment_count,stress_rating,stress_rating_label", false);
         write(FLAGGED_LOG, "flag_id,trip_id,driver_id,timestamp,elapsed_seconds,motion_score,"
                 + "motion_rating,audio_score,audio_rating,stress_score,stress_rating,explanation", false);
@@ -94,6 +94,7 @@ public class CsvLogger {
         String row = String.join(",",
                 ride.getId(),
                 ride.getDriver().getId(),
+                ride.getDriver().getName(),
                 String.valueOf(ride.getDuration()),
                 fmt(req.getEstimatedDistance()),
                 req.getPickupLocation().getLabel(),
