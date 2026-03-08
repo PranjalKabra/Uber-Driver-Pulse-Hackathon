@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 public class StressSnapshot {
 
-    private static final double AUDIO_FLAG_THRESHOLD  = 0.6;
+    private static final double AUDIO_FLAG_THRESHOLD  = 0.5;
     private static final double MOTION_FLAG_THRESHOLD = 0.6;
 
     private final LocalDateTime    timestamp;
@@ -38,8 +38,8 @@ public class StressSnapshot {
         this.earningVelocity = earningVelocity;
     }
 
-    // totalFlagged = both audio AND motion flagged at this moment
-    public boolean isTotalFlagged() { return audioFlagged && motionFlagged; }
+    // totalFlagged = both audio OR motion flagged at this moment
+    public boolean isTotalFlagged() { return audioFlagged || motionFlagged; }
 
     public LocalDateTime   getTimestamp()       { return timestamp; }
     public double          getAudioScore()      { return audioScore; }

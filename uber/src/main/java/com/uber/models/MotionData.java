@@ -22,6 +22,10 @@ public final class MotionData {
     public double getLatitude()     { return latitude; }
     public double getLongitude()    { return longitude; }
 
+    public double getAcc_z() { return acc_z; }
+    public double getAcc_x() { return acc_x; }
+    public double getAcc_y() { return acc_y; }
+
 //    @Override
 //    public String toString() {
 //        return String.format("Motion[%.1f km/h, %.2f m/s², (%.4f, %.4f)]",

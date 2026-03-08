@@ -64,13 +64,4 @@ public class StressScoreService {
         csvLogger.logFlaggedMoment(snapshot, reading, ride);
         return snapshot;
     }
-
-    public List<StressSnapshot> processAllReadings(List<SensorReading> readings,
-                                                   Driver driver, Shift shift, Ride ride) {
-        List<StressSnapshot> snapshots = new ArrayList<>();
-        for (SensorReading reading : readings) {
-            snapshots.add(takeSnapshot(reading, driver, shift, ride));
-        }
-        return snapshots;
-    }
 }

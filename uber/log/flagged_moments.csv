@@ -1,7 +1,6 @@
 flag_id,trip_id,driver_id,timestamp,elapsed_seconds,motion_score,motion_rating,audio_score,audio_rating,stress_score,stress_rating,explanation
-d7c7e828,659c68c1,89642206,2026-03-08T05:13:34.389346600,30,0.8723,HARSH,0.5689,ARGUMENT,0.7509,CRITICAL,"Harsh braking/acceleration detected (5.7 m/s²). Motion disturbance detected."
-0e23f7af,659c68c1,89642206,2026-03-08T05:14:04.389484,60,0.6242,MODERATE,0.2917,CONVERSATIONAL,0.4912,CRITICAL,"High speed detected (94.3 km/h). Motion disturbance detected."
-4154fd9c,659c68c1,89642206,2026-03-08T05:14:34.389378100,90,1.0000,HARSH,0.2543,CONVERSATIONAL,0.7017,CRITICAL,"Harsh braking/acceleration detected (10.1 m/s²). Motion disturbance detected."
-e2c4986d,659c68c1,89642206,2026-03-08T05:15:04.389902300,120,0.9291,HARSH,0.4161,CONVERSATIONAL,0.7239,CRITICAL,"Harsh braking/acceleration detected (7.7 m/s²). Motion disturbance detected."
-c6d98261,659c68c1,89642206,2026-03-08T05:15:34.389293600,150,1.0000,HARSH,0.3441,CONVERSATIONAL,0.7376,CRITICAL,"Harsh braking/acceleration detected (9.6 m/s²). Motion disturbance detected."
-670417b7,659c68c1,89642206,2026-03-08T05:16:04.389718200,180,0.6311,MODERATE,0.5929,ARGUMENT,0.6158,CRITICAL,"Harsh braking/acceleration detected (4.9 m/s²). Motion disturbance detected."
+28f6d3f5,5a0b835b,5e71beb6,2026-03-08T15:15:46.989805435,0,0.5752,MODERATE,0.2736,CONVERSATIONAL,0.4546,MEDIUM,"Harsh braking/acceleration detected (5.5 m/s²). Motion disturbance detected."
+23c40891,5a0b835b,5e71beb6,2026-03-08T15:16:16.988526640,30,0.8903,HARSH,0.4554,CONVERSATIONAL,0.7164,HIGH,"Harsh braking/acceleration detected (7.3 m/s²). Motion disturbance detected."
+3c4df22f,5a0b835b,5e71beb6,2026-03-08T15:16:46.988412862,60,0.5794,MODERATE,0.4397,CONVERSATIONAL,0.5235,MEDIUM,"Harsh braking/acceleration detected (5.5 m/s²). Motion disturbance detected."
+abd5b0a3,5a0b835b,5e71beb6,2026-03-08T15:17:16.988434155,90,0.7268,HARSH,0.3850,CONVERSATIONAL,0.5901,MEDIUM,"Harsh braking/acceleration detected (6.4 m/s²). Motion disturbance detected."
+11952903,5a0b835b,5e71beb6,2026-03-08T15:18:46.988442127,180,0.5357,MODERATE,0.5090,ARGUMENT,0.5250,MEDIUM,"Harsh braking/acceleration detected (5.2 m/s²). Motion disturbance detected."

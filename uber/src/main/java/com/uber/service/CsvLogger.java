@@ -28,7 +28,7 @@ public class CsvLogger {
                 + "curr_velocity,required_velocity,velocity_delta,trips_completed,forecast_status", false);
         write(AUDIO_LOG,   "log_id,ride_id,driver_id,timestamp,decibels,sustained_seconds,"
                 + "audio_score,audio_level,is_flagged", false);
-        write(MOTION_LOG,  "log_id,ride_id,driver_id,timestamp,speed,acceleration,latitude,longitude,"
+        write(MOTION_LOG,  "log_id,ride_id,driver_id,timestamp,acc_x,acc_y,acc_z,acceleration,latitude,longitude,"
                 + "motion_score,motion_level,is_flagged", false);
         write(RIDE_LOG,    "ride_id,driver_id,duration,distance,start_location,end_location,fare,"
                 + "motion_flag_count,audio_flag_count,flagged_moment_count,stress_rating,stress_rating_label", false);
@@ -76,7 +76,9 @@ public class CsvLogger {
                 reading.getRideId(),
                 driverId,
                 reading.getTimestamp().toString(),
-                fmt(m.getSpeed()),
+                fmt(m.getAcc_x()),
+                fmt(m.getAcc_y()),
+                fmt(m.getAcc_z()),
                 fmt(m.getAcceleration()),
                 fmt(m.getLatitude()),
                 fmt(m.getLongitude()),
@@ -132,10 +134,7 @@ public class CsvLogger {
         boolean audioFlagged  = snapshot.isAudioFlagged();
         boolean motionFlagged = snapshot.isMotionFlagged();
 
-        String motionDesc = m.getAcceleration() > 4.0
-                ? String.format("Harsh braking/acceleration detected (%.1f m/s²)", m.getAcceleration())
-                : String.format("High speed detected (%.1f km/h)", m.getSpeed());
-
+        String motionDesc = String.format("Harsh braking/acceleration detected (%.1f m/s²)", m.getAcceleration());
         String audioDesc = String.format("Sustained high audio (%.1f dB) for %.0fs",
                 a.getDecibels(), a.getSustainedSeconds());
 
