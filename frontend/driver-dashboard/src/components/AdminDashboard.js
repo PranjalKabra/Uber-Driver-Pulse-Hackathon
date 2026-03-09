@@ -24,6 +24,17 @@ function CsvDownloadSection() {
 
   const files = [
     {
+      id: 'trip',
+      label: 'Trip Summaries',
+      icon: '🏁',
+      desc: 'Post-trip report card with stress scores and earnings per ride',
+      color: 'var(--lime)',
+      colorDim: 'rgba(200,241,53,0.08)',
+      colorBorder: 'rgba(200,241,53,0.2)',
+      endpoint: '/admin/csv/trip-summaries',
+      filename: 'trip_summaries.csv',
+    },
+    {
       id: 'flagged',
       label: 'Flagged Moments',
       icon: '🚨',
@@ -108,7 +119,7 @@ function CsvDownloadSection() {
       </div>
 
       {/* Download cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
         {files.map(file => {
           const isDownloading = downloading === file.id;
           return (

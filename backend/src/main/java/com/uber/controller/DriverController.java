@@ -12,17 +12,11 @@ import com.uber.strategy.WeightedStressStrategy;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.Serializable;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -63,10 +57,11 @@ public class DriverController {
     private final EarningVelocityService velocityService;
     private final RideSimulationScheduler scheduler;
 
-    private static final String FLAGGED_LOG = "uber/log/flagged_moments.csv";
-    private static final String RIDE_LOG    = "uber/log/ride_summary_log.csv";
-    private static final String AUDIO_LOG   = "uber/log/audio_sensor_log.csv";
-    private static final String MOTION_LOG  = "uber/log/motion_sensor_log.csv";
+    private static final String FLAGGED_LOG      = "uber/log/flagged_moments.csv";
+    private static final String RIDE_LOG         = "uber/log/ride_summary_log.csv";
+    private static final String AUDIO_LOG        = "uber/log/audio_sensor_log.csv";
+    private static final String MOTION_LOG       = "uber/log/motion_sensor_log.csv";
+    private static final String TRIP_SUMMARY_LOG = "uber/log/trip_summaries.csv";
 
     public DriverController(DriverRepository driverRepo,
                             RideRepository rideRepo,
@@ -105,18 +100,14 @@ public class DriverController {
         driver.setEarningGoal(new EarningGoal(earningGoal));
         driverRepo.save(driver);
 
-        LocalDateTime shiftEnd = LocalDateTime.now().plusHours(shiftHours);
+        LocalTime shiftEnd = LocalTime.now().plusHours(shiftHours);
         shiftService.startShift(driver, shiftEnd);
-
-        driver.setEarningGoal(new EarningGoal(earningGoal));
-        driver.getEarningGoal().setEarningVelocity(velocityService.calculate(driver, driver.getCurrentShift(), LocalDateTime.now()));
 
         return ResponseEntity.ok(Map.of(
                 "driverId",    driver.getId(),
                 "name",        driver.getName(),
                 "earningGoal", earningGoal,
-                "hoursRemaining", String.format("%.2f", driver.getCurrentShift().getHoursRemaining()),
-                "shiftEnd", driver.getCurrentShift().getEndTime().toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm")),
+                "shiftEnd",    shiftEnd.toString(),
                 "message",     "Driver registered and shift started"
         ));
     }
@@ -137,7 +128,6 @@ public class DriverController {
 
     // ─────────────────────────────────────────────────────────────────
     // GET /api/rides/available
-    // Returns: list of pending ride requests
     // ─────────────────────────────────────────────────────────────────
     @GetMapping("/rides/available")
     public ResponseEntity<?> getAvailableRides() {
@@ -150,8 +140,6 @@ public class DriverController {
 
     // ─────────────────────────────────────────────────────────────────
     // POST /api/rides/accept
-    // Body: { "driverId": "abc123", "requestId": "xyz456" }
-    // Returns: ride summary with stress snapshots
     // ─────────────────────────────────────────────────────────────────
     @PostMapping("/rides/accept")
     public ResponseEntity<?> acceptRide(@RequestBody Map<String, String> body) {
@@ -166,8 +154,6 @@ public class DriverController {
 
         RideRequest request = reqOpt.get();
         Ride ride = rideService.acceptRide(driver, request);
-
-        // Simulate sensors + process stress (same as Main.java did)
         scheduler.startSimulation(ride, driver, driver.getCurrentShift());
 
         return ResponseEntity.ok(Map.of(
@@ -181,7 +167,6 @@ public class DriverController {
 
     // ─────────────────────────────────────────────────────────────────
     // POST /api/rides/reject
-    // Body: { "requestId": "xyz456" }
     // ─────────────────────────────────────────────────────────────────
     @PostMapping("/rides/reject")
     public ResponseEntity<?> rejectRide(@RequestBody Map<String, String> body) {
@@ -195,7 +180,6 @@ public class DriverController {
 
     // ─────────────────────────────────────────────────────────────────
     // POST /api/rides/{rideId}/complete
-    // Returns: final ride summary with stress rating
     // ─────────────────────────────────────────────────────────────────
     @PostMapping("/rides/{rideId}/complete")
     public ResponseEntity<?> completeRide(@PathVariable String rideId) {
@@ -208,6 +192,47 @@ public class DriverController {
 
         Driver driver = ride.getDriver();
         velocityService.calculate(driver, driver.getCurrentShift(), LocalDateTime.now());
+
+        // ── Write to trip_summaries.csv ───────────────────────────
+        try {
+            java.io.File logFile = new java.io.File(TRIP_SUMMARY_LOG);
+            logFile.getParentFile().mkdirs();
+            boolean isNew = !logFile.exists() || logFile.length() == 0;
+            try (java.io.FileWriter fw = new java.io.FileWriter(logFile, true);
+                 java.io.BufferedWriter bw = new java.io.BufferedWriter(fw)) {
+                if (isNew) {
+                    bw.write("trip_id,driver_id,driver_name,from,to,fare,stress_rating,audio_flags,motion_flags,total_flags,avg_audio_score,avg_motion_score,avg_combined_score,peak_combined_score,total_snapshots,completed_at");
+                    bw.newLine();
+                }
+                // Compute averages from snapshots
+                java.util.List<StressSnapshot> snaps = ride.getStressSnapshots();
+                double avgAudio    = snaps.isEmpty() ? 0 : snaps.stream().mapToDouble(StressSnapshot::getAudioScore).average().orElse(0);
+                double avgMotion   = snaps.isEmpty() ? 0 : snaps.stream().mapToDouble(StressSnapshot::getMotionScore).average().orElse(0);
+                double avgCombined = snaps.isEmpty() ? 0 : snaps.stream().mapToDouble(StressSnapshot::getCombinedScore).average().orElse(0);
+                double peakCombined= snaps.isEmpty() ? 0 : snaps.stream().mapToDouble(StressSnapshot::getCombinedScore).max().orElse(0);
+
+                String line = String.join(",",
+                    ride.getId(),
+                    driver.getDriverId(),
+                    driver.getName(),
+                    ride.getFrom(),
+                    ride.getTo(),
+                    String.format("%.2f", ride.getActualFare()),
+                    ride.getStressRating() != null ? ride.getStressRating().toString() : "N/A",
+                    String.valueOf(ride.getAudioFlagCount()),
+                    String.valueOf(ride.getMotionFlagCount()),
+                    String.valueOf(ride.getTotalFlagCount()),
+                    String.format("%.3f", avgAudio),
+                    String.format("%.3f", avgMotion),
+                    String.format("%.3f", avgCombined),
+                    String.format("%.3f", peakCombined),
+                    String.valueOf(snaps.size()),
+                    java.time.LocalDateTime.now().toString()
+                );
+                bw.write(line);
+                bw.newLine();
+            }
+        } catch (Exception ignored) {}
 
         return ResponseEntity.ok(Map.of(
                 "rideId",       ride.getId(),
@@ -222,39 +247,29 @@ public class DriverController {
 
     // ─────────────────────────────────────────────────────────────────
     // GET /api/rides/{rideId}/stress
-    // Returns: all stress snapshots for a ride
-    // ALSO USED TO GET LIVE EARNING VELOCITY
     // ─────────────────────────────────────────────────────────────────
     @GetMapping("/rides/{rideId}/stress")
     public ResponseEntity<?> getStressSnapshots(@PathVariable String rideId) {
         Ride ride = rideRepo.findById(rideId);
         if (ride == null) return ResponseEntity.badRequest().body("Ride not found: " + rideId);
 
-        List<Map<String, Object>> snapshots =
-                ride.getStressSnapshots().stream().map(s -> {
-                    Map<String, Object> m = new HashMap<>();
-                    m.put("timestamp", s.getTimestamp().toLocalTime().toString());
-                    m.put("audioScore", s.getAudioScore());
-                    m.put("audioLevel", s.getAudioLevel().toString());
-                    m.put("motionScore", s.getMotionScore());
-                    m.put("motionLevel", s.getMotionLevel().toString());
-                    m.put("combinedScore", s.getCombinedScore());
-                    m.put("combinedLevel", s.getCombinedLevel().toString());
-                    m.put("audioFlagged", s.isAudioFlagged());
-                    m.put("motionFlagged", s.isMotionFlagged());
-                    m.put("currentVelocity", s.getEarningVelocity().getCurrentVelocity());
-                    m.put("requiredVelocity", s.getEarningVelocity().getRequiredVelocity());
-                    m.put("velocityDelta", s.getEarningVelocity().getVelocityDelta());
-                    m.put("paceStatus", s.getEarningVelocity().getPaceStatus());
-                    return m;
-                }).toList();
+        List<Map<String, Object>> snapshots = ride.getStressSnapshots().stream().map(s -> Map.<String, Object>of(
+                "timestamp",    s.getTimestamp().toLocalTime().toString(),
+                "audioScore",   s.getAudioScore(),
+                "audioLevel",   s.getAudioLevel().toString(),
+                "motionScore",  s.getMotionScore(),
+                "motionLevel",  s.getMotionLevel().toString(),
+                "combinedScore",s.getCombinedScore(),
+                "combinedLevel",s.getCombinedLevel().toString(),
+                "audioFlagged", s.isAudioFlagged(),
+                "motionFlagged",s.isMotionFlagged()
+        )).toList();
 
         return ResponseEntity.ok(Map.of("rideId", rideId, "snapshots", snapshots));
     }
 
     // ─────────────────────────────────────────────────────────────────
     // POST /api/rides/{rideId}/strategy
-    // Body: { "strategy": "AVERAGE" | "PEAK" | "WEIGHTED" }
     // ─────────────────────────────────────────────────────────────────
     @PostMapping("/rides/{rideId}/strategy")
     public ResponseEntity<?> switchStrategy(@PathVariable String rideId,
@@ -270,7 +285,6 @@ public class DriverController {
 
     // ─────────────────────────────────────────────────────────────────
     // GET /api/driver/{driverId}/report
-    // Returns: full driver report (same as the "FINAL REPORT" in Main.java)
     // ─────────────────────────────────────────────────────────────────
     @GetMapping("/driver/{driverId}/report")
     public ResponseEntity<?> getDriverReport(@PathVariable String driverId) {
@@ -293,16 +307,12 @@ public class DriverController {
                 "currentEarned",  goal.getCurrentEarned(),
                 "remaining",      goal.getRemainingTarget(),
                 "goalMet",        goal.isGoalMet(),
-                "completedRides", completedRides,
-                "currentEarningVelocity", goal.getEarningVelocity().getCurrentVelocity(),
-                "requiredEarningVelocity", goal.getEarningVelocity().getRequiredVelocity(),
-                "paceStatus", goal.getEarningVelocity().getPaceStatus()
+                "completedRides", completedRides
         ));
     }
 
     // ─────────────────────────────────────────────────────────────────
     // POST /api/shift/end
-    // Body: { "driverId": "abc123" }
     // ─────────────────────────────────────────────────────────────────
     @PostMapping("/shift/end")
     public ResponseEntity<?> endShift(@RequestBody Map<String, String> body) {
@@ -422,6 +432,11 @@ public class DriverController {
     // GET /api/admin/csv/audio-log        → download audio_sensor_log.csv
     // GET /api/admin/csv/motion-log       → download motion_sensor_log.csv
     // ─────────────────────────────────────────────────────────────────
+    @GetMapping("/admin/csv/trip-summaries")
+    public ResponseEntity<String> downloadTripSummaries() {
+        return serveCsv(TRIP_SUMMARY_LOG, "trip_summaries.csv");
+    }
+
     @GetMapping("/admin/csv/flagged-moments")
     public ResponseEntity<String> downloadFlaggedMoments() {
         return serveCsv(FLAGGED_LOG, "flagged_moments.csv");
