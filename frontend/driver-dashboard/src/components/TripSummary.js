@@ -157,6 +157,62 @@ export default function TripSummary({ data, onClose }) {
   const audioFlags   = num(completionData?.audioFlags  || 0);
   const motionFlags  = num(completionData?.motionFlags || 0);
 
+  // ── Smart plain-English explanation ──────────────────────────────
+  function generateExplanation() {
+    if (flaggedSnaps.length === 0) {
+      return {
+        text: `This trip was completed without any flagged stress events. Audio levels remained within normal range throughout, and driving patterns were smooth and consistent. Fare earned: ₹${fareEarned}.`,
+        color: '#35f17e',
+        icon: '✅',
+        basis: 'No audio or motion thresholds were exceeded during this trip.'
+      };
+    }
+
+    const audioFlaggedSnaps  = parsed.filter(s => s.audioFlagged);
+    const motionFlaggedSnaps = parsed.filter(s => s.motionFlagged);
+    const bothFlagged        = parsed.filter(s => s.audioFlagged && s.motionFlagged);
+
+    // Find time range of flags
+    const firstFlag = flaggedSnaps[0]?.timeLabel || '—';
+    const lastFlag  = flaggedSnaps[flaggedSnaps.length - 1]?.timeLabel || '—';
+    const sameTime  = firstFlag === lastFlag;
+
+    let text = '';
+    let basis = '';
+
+    if (bothFlagged.length > 0) {
+      // Both audio AND motion flagged simultaneously — strongest signal
+      text = `This trip was flagged because audio levels and harsh motion events overlapped ${bothFlagged.length > 1 ? `${bothFlagged.length} times` : 'at one point'}${sameTime ? ` around ${firstFlag}` : ` between ${firstFlag} and ${lastFlag}`}. `
+           + `Audio spikes (${audioFlaggedSnaps.length} event${audioFlaggedSnaps.length > 1 ? 's' : ''}) combined with ${motionFlaggedSnaps.length} motion spike${motionFlaggedSnaps.length > 1 ? 's' : ''} `
+           + `suggest a stressful moment — possibly a difficult passenger interaction during aggressive traffic conditions.`;
+      basis = `Overlapping audio+motion flags are the strongest stress indicator. Combined score peaked at ${peakCombined.toFixed(1)} (threshold: 0.60 to flag).`;
+    } else if (audioFlaggedSnaps.length > motionFlaggedSnaps.length) {
+      // Primarily audio-driven
+      const avgAudioFlag = audioFlaggedSnaps.reduce((a,s) => a + s.audioScore, 0) / audioFlaggedSnaps.length;
+      text = `This trip was flagged due to elevated cabin audio levels. `
+           + `${audioFlaggedSnaps.length} audio spike${audioFlaggedSnaps.length > 1 ? 's' : ''} were detected`
+           + `${sameTime ? ` around ${firstFlag}` : ` between ${firstFlag} and ${lastFlag}`} `
+           + `with an average spike intensity of ${avgAudioFlag.toFixed(1)}. `
+           + `This pattern may indicate a loud passenger conversation, argument, or sustained cabin noise.`;
+      basis = `Audio score exceeded 0.60 threshold in ${audioFlaggedSnaps.length} snapshot(s). Motion remained within normal range (< 0.60).`;
+    } else {
+      // Primarily motion-driven
+      const avgMotionFlag = motionFlaggedSnaps.reduce((a,s) => a + s.motionScore, 0) / motionFlaggedSnaps.length;
+      text = `This trip was flagged due to aggressive driving patterns. `
+           + `${motionFlaggedSnaps.length} harsh motion event${motionFlaggedSnaps.length > 1 ? 's' : ''} were detected`
+           + `${sameTime ? ` around ${firstFlag}` : ` between ${firstFlag} and ${lastFlag}`} `
+           + `with an average intensity of ${avgMotionFlag.toFixed(1)}. `
+           + `This likely reflects sudden braking, sharp turns, or rough road conditions.`;
+      basis = `Motion score exceeded 0.60 threshold in ${motionFlaggedSnaps.length} snapshot(s). Audio remained within normal range (< 0.60).`;
+    }
+
+    const color = avgCombined >= 0.70 ? '#f16035' : avgCombined >= 0.50 ? '#c8f135' : '#35d4f1';
+    const icon  = avgCombined >= 0.70 ? '⚠️' : '📋';
+    return { text, basis, color, icon };
+  }
+
+  const explanation = generateExplanation();
+
   return (
     <div
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
@@ -178,6 +234,35 @@ export default function TripSummary({ data, onClose }) {
             </div>
             <div style={{ fontFamily:'JetBrains Mono, monospace', fontSize:10, color:'#55557a', marginTop:3 }}>
               {ride?.rideId} · {parsed.length} snapshots
+            </div>
+          </div>
+        </div>
+
+        {/* Smart Plain-English Explanation */}
+        <SectionDivider title="What Happened on This Trip" />
+        <div style={{
+          background: `${explanation.color}08`,
+          border: `1px solid ${explanation.color}30`,
+          borderLeft: `4px solid ${explanation.color}`,
+          borderRadius: 12, padding: '18px 22px', marginBottom: 4,
+        }}>
+          <div style={{ display:'flex', alignItems:'flex-start', gap:14 }}>
+            <span style={{ fontSize:24, flexShrink:0 }}>{explanation.icon}</span>
+            <div>
+              <div style={{ fontSize:14, color:'#ffffff', lineHeight:1.7, marginBottom:10 }}>
+                {explanation.text}
+              </div>
+              <div style={{
+                background:'rgba(0,0,0,0.3)', borderRadius:8, padding:'8px 12px',
+                borderLeft:`2px solid ${explanation.color}50`,
+              }}>
+                <div style={{ fontFamily:'JetBrains Mono, monospace', fontSize:9, letterSpacing:'2px', textTransform:'uppercase', color:'#55557a', marginBottom:4 }}>
+                  How we decided this
+                </div>
+                <div style={{ fontSize:11, color:'#888888', lineHeight:1.6 }}>
+                  {explanation.basis}
+                </div>
+              </div>
             </div>
           </div>
         </div>
