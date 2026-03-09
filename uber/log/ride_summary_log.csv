@@ -1,2 +1,0 @@
-ride_id,driver_id,driver_name,duration,distance,start_location,end_location,fare,motion_flag_count,audio_flag_count,flagged_moment_count,stress_rating,stress_rating_label
-f94c1e35,04993cdb,lakshya,2,19.0000,Worli,Malad,281.0000,1,1,2,MEDIUM,MEDIUM

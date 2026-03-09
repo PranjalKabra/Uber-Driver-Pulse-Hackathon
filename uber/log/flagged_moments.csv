@@ -1,3 +1,0 @@
-flag_id,trip_id,driver_id,timestamp,elapsed_seconds,motion_score,motion_rating,audio_score,audio_rating,stress_score,stress_rating,explanation
-8b9269aa,f94c1e35,04993cdb,2026-03-09T16:48:04.340120051,0,0.2845,MODERATE,0.5128,ARGUMENT,0.3758,MEDIUM,"Sustained high audio (95.3 dB) for 9s. Audio disturbance detected."
-ef8dbc58,f94c1e35,04993cdb,2026-03-09T16:48:34.339081049,30,0.7241,HARSH,0.3560,CONVERSATIONAL,0.5769,MEDIUM,"Harsh braking/acceleration detected (6.3 m/s²). Motion disturbance detected."
