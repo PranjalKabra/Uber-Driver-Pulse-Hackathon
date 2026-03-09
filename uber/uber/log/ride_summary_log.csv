@@ -1,3 +1,1 @@
 ride_id,driver_id,driver_name,duration,distance,start_location,end_location,fare,motion_flag_count,audio_flag_count,flagged_moment_count,stress_rating,stress_rating_label
-a38a5881,3b5d90e4,Parrv,1,2.2000,Malad,Kandivali,45.2000,1,2,3,MEDIUM,MEDIUM
-ced31983,3b5d90e4,Parrv,0,23.7000,Andheri East,Colaba,362.7000,0,0,0,LOW,LOW
