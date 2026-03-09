@@ -1,4 +1,4 @@
-const BASE = '/api';
+const BASE = 'https://uber-driver-pulse-hackathon.onrender.com';
 
 export async function apiGet(path) {
   const res = await fetch(BASE + path);
