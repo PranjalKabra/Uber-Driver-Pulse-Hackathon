@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 public class StressSnapshot {
 
-    private static final double AUDIO_FLAG_THRESHOLD  = 0.5;
+    private static final double AUDIO_FLAG_THRESHOLD  = 0.55;
     private static final double MOTION_FLAG_THRESHOLD = 0.6;
 
     private final LocalDateTime    timestamp;
