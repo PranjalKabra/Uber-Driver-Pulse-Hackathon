@@ -1,0 +1,2 @@
+ride_id,driver_id,driver_name,duration,distance,start_location,end_location,fare,motion_flag_count,audio_flag_count,flagged_moment_count,stress_rating,stress_rating_label
+344c84a1,325e877c,parrv,0,6.4000,Dadar,Juhu,103.4000,0,0,0,LOW,LOW
