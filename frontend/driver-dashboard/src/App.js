@@ -12,6 +12,8 @@ import LandingPage, { SplashScreen } from './components/LandingPage';
 import TripSummary from './components/TripSummary';
 import { Btn, Spinner } from './components/UI';
 
+// function TopBar({ section, driver, onRegister, onEndShift, onGenerate, generating }) {
+//   const titles = { dashboard:'Dashboard', rides:'Available Rides', stress:'Ride Monitor', report:'Driver Report' };
 function TopBar({ section, driver, onRegister, onEndShift, onGenerate, generating, onLogout }) {
   const titles = {
     dashboard: 'Dashboard',
@@ -52,15 +54,14 @@ function TopBar({ section, driver, onRegister, onEndShift, onGenerate, generatin
 
 function DriverApp({ driverName, onLogout }) {
   const toast = useToast();
-  const [section,          setSection]          = useState('dashboard');
-  const [showReg,          setShowReg]          = useState(false);
-  const [driver,           setDriver]           = useState(null);
-  const [activeRide,       setActiveRide]       = useState(null);
-  const [rides,            setRides]            = useState([]);
-  const [ridesLoading,     setRidesLoading]     = useState(false);
-  const [report,           setReport]           = useState(null);
-  const [velocity,         setVelocity]         = useState(null);
-  const [generating,       setGenerating]       = useState(false);
+  const [section,      setSection]      = useState('dashboard');
+  const [showReg,      setShowReg]      = useState(false);
+  const [driver,       setDriver]       = useState(null);
+  const [activeRide,   setActiveRide]   = useState(null);
+  const [rides,        setRides]        = useState([]);
+  const [ridesLoading, setRidesLoading] = useState(false);
+  const [report,       setReport]       = useState(null);
+  const [generating,   setGenerating]   = useState(false);
   const [tripSummaryData,  setTripSummaryData]  = useState(null); // holds data for TripSummary modal
 
   const loadRides = useCallback(async () => {
@@ -80,13 +81,21 @@ function DriverApp({ driverName, onLogout }) {
     try { const d = await apiGet('/driver/' + driver.driverId + '/velocity'); setVelocity(d); } catch {}
   }, [driver]);
 
+  // Section nav side effects
   useEffect(() => {
-    if (section === 'rides')  loadRides();
+    if (section === 'rides') loadRides();
     if (section === 'report') loadReport();
   }, [section, loadRides, loadReport]);
 
   useEffect(() => {
-    if (driver) { loadReport(); loadVelocity(); }
+    if (driver) loadReport();
+  }, [driver, loadReport]);
+
+  useEffect(() => {
+    if (driver) {
+      loadReport();
+      loadVelocity();
+    }
   }, [driver, loadReport, loadVelocity]);
 
   useEffect(() => {
@@ -144,15 +153,14 @@ function DriverApp({ driverName, onLogout }) {
       });
 
       setActiveRide(null);
-      loadReport();
-      loadVelocity();
+      loadReport(); // refreshes earned totals + velocity in one call
     } catch(e) { toast(e.message, 'error'); }
   }
 
   const nav = (id) => setSection(id);
 
   const content = {
-    dashboard: <Dashboard driver={driver} report={report} velocity={velocity} activeRide={activeRide} onCompleteRide={completeRide} onViewStress={() => nav('stress')} onRefresh={() => { loadReport(); loadVelocity(); }} />,
+    dashboard: <Dashboard driver={driver} report={report} activeRide={activeRide} onCompleteRide={completeRide} onViewStress={() => nav('stress')} onRefresh={loadReport} />,
     rides:     <AvailableRides rides={rides} loading={ridesLoading} onRidesChange={setRides} onRideAccepted={r => { setActiveRide(r); nav('dashboard'); }} driver={driver} hasActiveRide={!!activeRide} />,
     stress:    <StressMonitor activeRideId={activeRide?.rideId} />,
     report:    <Report report={report} onRefresh={loadReport} />,

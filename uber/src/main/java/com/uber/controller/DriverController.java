@@ -12,11 +12,17 @@ import com.uber.strategy.WeightedStressStrategy;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.Serializable;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -99,14 +105,18 @@ public class DriverController {
         driver.setEarningGoal(new EarningGoal(earningGoal));
         driverRepo.save(driver);
 
-        LocalTime shiftEnd = LocalTime.now().plusHours(shiftHours);
+        LocalDateTime shiftEnd = LocalDateTime.now().plusHours(shiftHours);
         shiftService.startShift(driver, shiftEnd);
+
+        driver.setEarningGoal(new EarningGoal(earningGoal));
+        driver.getEarningGoal().setEarningVelocity(velocityService.calculate(driver, driver.getCurrentShift(), LocalDateTime.now()));
 
         return ResponseEntity.ok(Map.of(
                 "driverId",    driver.getId(),
                 "name",        driver.getName(),
                 "earningGoal", earningGoal,
-                "shiftEnd",    shiftEnd.toString(),
+                "hoursRemaining", String.format("%.2f", driver.getCurrentShift().getHoursRemaining()),
+                "shiftEnd", driver.getCurrentShift().getEndTime().toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm")),
                 "message",     "Driver registered and shift started"
         ));
     }
@@ -127,6 +137,7 @@ public class DriverController {
 
     // ─────────────────────────────────────────────────────────────────
     // GET /api/rides/available
+    // Returns: list of pending ride requests
     // ─────────────────────────────────────────────────────────────────
     @GetMapping("/rides/available")
     public ResponseEntity<?> getAvailableRides() {
@@ -139,6 +150,8 @@ public class DriverController {
 
     // ─────────────────────────────────────────────────────────────────
     // POST /api/rides/accept
+    // Body: { "driverId": "abc123", "requestId": "xyz456" }
+    // Returns: ride summary with stress snapshots
     // ─────────────────────────────────────────────────────────────────
     @PostMapping("/rides/accept")
     public ResponseEntity<?> acceptRide(@RequestBody Map<String, String> body) {
@@ -153,6 +166,8 @@ public class DriverController {
 
         RideRequest request = reqOpt.get();
         Ride ride = rideService.acceptRide(driver, request);
+
+        // Simulate sensors + process stress (same as Main.java did)
         scheduler.startSimulation(ride, driver, driver.getCurrentShift());
 
         return ResponseEntity.ok(Map.of(
@@ -166,6 +181,7 @@ public class DriverController {
 
     // ─────────────────────────────────────────────────────────────────
     // POST /api/rides/reject
+    // Body: { "requestId": "xyz456" }
     // ─────────────────────────────────────────────────────────────────
     @PostMapping("/rides/reject")
     public ResponseEntity<?> rejectRide(@RequestBody Map<String, String> body) {
@@ -179,6 +195,7 @@ public class DriverController {
 
     // ─────────────────────────────────────────────────────────────────
     // POST /api/rides/{rideId}/complete
+    // Returns: final ride summary with stress rating
     // ─────────────────────────────────────────────────────────────────
     @PostMapping("/rides/{rideId}/complete")
     public ResponseEntity<?> completeRide(@PathVariable String rideId) {
@@ -205,29 +222,39 @@ public class DriverController {
 
     // ─────────────────────────────────────────────────────────────────
     // GET /api/rides/{rideId}/stress
+    // Returns: all stress snapshots for a ride
+    // ALSO USED TO GET LIVE EARNING VELOCITY
     // ─────────────────────────────────────────────────────────────────
     @GetMapping("/rides/{rideId}/stress")
     public ResponseEntity<?> getStressSnapshots(@PathVariable String rideId) {
         Ride ride = rideRepo.findById(rideId);
         if (ride == null) return ResponseEntity.badRequest().body("Ride not found: " + rideId);
 
-        List<Map<String, Object>> snapshots = ride.getStressSnapshots().stream().map(s -> Map.<String, Object>of(
-                "timestamp",    s.getTimestamp().toLocalTime().toString(),
-                "audioScore",   s.getAudioScore(),
-                "audioLevel",   s.getAudioLevel().toString(),
-                "motionScore",  s.getMotionScore(),
-                "motionLevel",  s.getMotionLevel().toString(),
-                "combinedScore",s.getCombinedScore(),
-                "combinedLevel",s.getCombinedLevel().toString(),
-                "audioFlagged", s.isAudioFlagged(),
-                "motionFlagged",s.isMotionFlagged()
-        )).toList();
+        List<Map<String, Object>> snapshots =
+                ride.getStressSnapshots().stream().map(s -> {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("timestamp", s.getTimestamp().toLocalTime().toString());
+                    m.put("audioScore", s.getAudioScore());
+                    m.put("audioLevel", s.getAudioLevel().toString());
+                    m.put("motionScore", s.getMotionScore());
+                    m.put("motionLevel", s.getMotionLevel().toString());
+                    m.put("combinedScore", s.getCombinedScore());
+                    m.put("combinedLevel", s.getCombinedLevel().toString());
+                    m.put("audioFlagged", s.isAudioFlagged());
+                    m.put("motionFlagged", s.isMotionFlagged());
+                    m.put("currentVelocity", s.getEarningVelocity().getCurrentVelocity());
+                    m.put("requiredVelocity", s.getEarningVelocity().getRequiredVelocity());
+                    m.put("velocityDelta", s.getEarningVelocity().getVelocityDelta());
+                    m.put("paceStatus", s.getEarningVelocity().getPaceStatus());
+                    return m;
+                }).toList();
 
         return ResponseEntity.ok(Map.of("rideId", rideId, "snapshots", snapshots));
     }
 
     // ─────────────────────────────────────────────────────────────────
     // POST /api/rides/{rideId}/strategy
+    // Body: { "strategy": "AVERAGE" | "PEAK" | "WEIGHTED" }
     // ─────────────────────────────────────────────────────────────────
     @PostMapping("/rides/{rideId}/strategy")
     public ResponseEntity<?> switchStrategy(@PathVariable String rideId,
@@ -243,6 +270,7 @@ public class DriverController {
 
     // ─────────────────────────────────────────────────────────────────
     // GET /api/driver/{driverId}/report
+    // Returns: full driver report (same as the "FINAL REPORT" in Main.java)
     // ─────────────────────────────────────────────────────────────────
     @GetMapping("/driver/{driverId}/report")
     public ResponseEntity<?> getDriverReport(@PathVariable String driverId) {
@@ -265,12 +293,16 @@ public class DriverController {
                 "currentEarned",  goal.getCurrentEarned(),
                 "remaining",      goal.getRemainingTarget(),
                 "goalMet",        goal.isGoalMet(),
-                "completedRides", completedRides
+                "completedRides", completedRides,
+                "currentEarningVelocity", goal.getEarningVelocity().getCurrentVelocity(),
+                "requiredEarningVelocity", goal.getEarningVelocity().getRequiredVelocity(),
+                "paceStatus", goal.getEarningVelocity().getPaceStatus()
         ));
     }
 
     // ─────────────────────────────────────────────────────────────────
     // POST /api/shift/end
+    // Body: { "driverId": "abc123" }
     // ─────────────────────────────────────────────────────────────────
     @PostMapping("/shift/end")
     public ResponseEntity<?> endShift(@RequestBody Map<String, String> body) {
