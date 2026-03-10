@@ -3,15 +3,17 @@
 [Drive Link](https://drive.google.com/file/d/1887Z2-Dy-wcJr3HVHhVNitxCINSwW_GZ/view?usp=drivesdk)
 
 ### Live Application
+[DriverOS](https://uber-driver-pulse-hackathon.vercel.app/)
+
 ### Credentials
 - Driver - driver123
 - UberAdmin - admin123
 ### Note to judges
-- The logs folder is generated at **source_code/backend/backend/logs**
+- The Processed_logs folder is generated at **/log**
 - Don't start a ride before registration of driver and setting shiftHours and Earning Goals.
 - Snapshots are generated randomly at an interval of 30 seconds.
 - So we request you to wait for atleast 2 minutes before ending a ride to be able to see atleast 4 snapshot readings
-- Output CSVs exist in logs/
+- Output CSVs exist in /log
 ---
 
 ## Run Locally
