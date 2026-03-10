@@ -1,4 +1,4 @@
-# Driver Pulse : Team BlackBugs
+# Driver Pulse : Team BlackBugs(Group - 17)
 ### Demo Video
 ### Live Application
 ### Credentials
@@ -10,6 +10,37 @@
 - So we request you to wait for atleast 2 minutes before ending a ride to be able to see atleast 4 snapshot readings
 - Output CSVs exist in logs/
 ---
+
+## Run Locally
+### Prerequisites
+- Java 17+
+- Maven 3.6+
+- Node.js 18+
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/PranjalKabra/Uber-Driver-Pulse-Hackathon.git
+cd Uber-Driver-Pulse-Hackathon
+```
+
+### 2. Start the Backend
+```bash
+cd uber
+mvn clean install
+mvn spring-boot:run
+```
+Backend runs on **http://localhost:8080**
+
+### 3. Start the Frontend
+```bash
+cd frontend/driver-dashboard
+npm install
+npm start
+```
+Frontend runs on **http://localhost:3000**
+
+---
+
 ## Problem Statement
 
 Uber drivers face significant stress during their shifts — from harsh road conditions to difficult passengers — but there's currently no system to monitor or respond to these stress signals in real time. **DriverOS** bridges this gap by tracking driver stress through simulated sensors and giving both drivers and Uber admins actionable insights.
@@ -39,10 +70,10 @@ DriverOS is a full-stack platform with **two perspectives**:
 - Auto-refreshes every 15 seconds
 
 ### Stress Detection Engine
-- **Audio Level Classification Levels** — detects sustained high decibel levels (quiet, conversational, arguement, very loud)
+- **Audio Level Classification Levels** — detects sustained high decibel levels (quiet, conversational, argument, very loud)
 - **Motion Level Classification Levels** — detects harsh braking and acceleration(Gradual, Moderate, Harsh)
-- **Stress Level Classification Levels** — weighted combination with 40% audio, 60% motion(Low, Medium, High, Critical)
-- **3 Stress Strategies** — Average, Peak, Weighted (switchable per ride)
+- **Stress Level Classification Levels** — average combination with 50% audio, 50% motion(Low, Medium, High, Critical)
+- **3 Stress Strategies** — Average, Peak, Weighted (dynamice switchable per ride)
 
 ---
 
@@ -144,33 +175,7 @@ Uber-Driver-Pulse-Hackathon/
 <img width="1851" height="211" alt="image" src="https://github.com/user-attachments/assets/35106fbc-83f4-4d89-971b-aa7283844218" />
 ---
 
-## Run Locally
-### Prerequisites
-- Java 17+
-- Maven 3.6+
-- Node.js 18+
 
-### 1. Clone the repository
-```bash
-git clone https://github.com/PranjalKabra/Uber-Driver-Pulse-Hackathon.git
-cd Uber-Driver-Pulse-Hackathon
-```
-
-### 2. Start the Backend
-```bash
-cd uber
-mvn clean install
-mvn spring-boot:run
-```
-Backend runs on **http://localhost:8080**
-
-### 3. Start the Frontend
-```bash
-cd frontend/driver-dashboard
-npm install
-npm start
-```
-Frontend runs on **http://localhost:3000**
 
 ## Tech Stack
 
@@ -182,7 +187,9 @@ Frontend runs on **http://localhost:3000**
 | Build     | Maven               |
 
 
+Built with atmost sincerity for the **Uber Hackathon 2026**
+# Contributors
+- [Pranjal Kabra](https://github.com/PranjalKabra)
+- [Parrv Jain](https://github.com/parrv-jain)
+- [Nidhi Maria Snatosh](https://github.com/Nidhi-Maria)
 
-
-Built with ❤️ for the **Uber Hackathon 2026**
-This project was built for hackathon purposes.
