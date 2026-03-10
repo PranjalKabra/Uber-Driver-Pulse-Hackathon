@@ -125,6 +125,24 @@ Uber-Driver-Pulse-Hackathon/
 
 #### For in-depth Documentation of each designPattern, please visit [docs](/System_Architecture/docs)
 ---
+## Sample Outputs
+### Live Stress Rating and Earning Velocity Monitor
+<img width="1615" height="889" alt="image" src="https://github.com/user-attachments/assets/1fb47b50-71d5-493d-b73a-45ef9fd4e63e" />
+<img width="1641" height="984" alt="image" src="https://github.com/user-attachments/assets/a22d47f2-2890-4318-b071-1c99b176653f" />
+
+### Feedback at the end of each ride
+<img width="886" height="929" alt="image" src="https://github.com/user-attachments/assets/29f9bc2a-dd7a-41d7-ac88-e1fba0a6fc74" />
+<img width="1222" height="599" alt="image" src="https://github.com/user-attachments/assets/687519cc-f06d-4a3e-9966-f4352c8961d8" />
+
+### Admin View, get reasoning of all flags collected
+<img width="1635" height="921" alt="image" src="https://github.com/user-attachments/assets/386586d5-0f9c-480c-9bbb-2c72eb1300a7" />
+<img width="1604" height="629" alt="image" src="https://github.com/user-attachments/assets/957bd9ef-636d-4aa9-85df-10fda6f97156" />
+<img width="1635" height="921" alt="image" src="https://github.com/user-attachments/assets/40a12a31-4174-449f-8267-d7ef58a45136" />
+
+### View the CSVs locally
+<img width="1851" height="211" alt="image" src="https://github.com/user-attachments/assets/35106fbc-83f4-4d89-971b-aa7283844218" />
+---
+
 ## Run Locally
 ### Prerequisites
 - Java 17+
