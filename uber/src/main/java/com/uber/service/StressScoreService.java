@@ -23,9 +23,9 @@ public class StressScoreService {
     }
 
     public double calcAudioScore(AudioData audio) {
-        double dbScore   = (audio.getDecibels() - 30.0) / 90.0;
-        double timeScore = (audio.getSustainedSeconds() - 2.0) / 58.0;
-        double raw       = (0.65 * dbScore) + (0.35 * timeScore);
+        double dbScore   = (audio.getDecibels() - 30.0) / 85.0;
+        double timeScore = Math.log(audio.getSustainedSeconds());
+        double raw       = (dbScore) + (0.1 * timeScore);
         return Math.min(1.0, Math.max(0.0, raw));
     }
 

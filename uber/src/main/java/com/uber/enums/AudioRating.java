@@ -1,10 +1,10 @@
 package com.uber.enums;
 
 public enum AudioRating {
-    QUIET(0.00, 0.25),
-    CONVERSATIONAL(0.25, 0.50),
-    ARGUMENT(0.50, 0.75),
-    VERY_LOUD(0.75, 1.00);
+    QUIET(0.00, 0.35),
+    CONVERSATIONAL(0.35, 0.55),
+    ARGUMENT(0.55, 0.80),
+    VERY_LOUD(0.80, 1.00);
 
     private final double min;
     private final double max;
