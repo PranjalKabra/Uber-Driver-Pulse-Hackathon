@@ -7,6 +7,7 @@
 ### Note to judges
 - Snapshots are generated randomly at an interval of 30 seconds.
 - So we request you to wait for atleast 2 minutes before ending a ride to be able to see atleast 4 snapshot readings
+- Output CSVs exist in logs/
 ---
 ## Problem Statement
 
