@@ -87,11 +87,41 @@ Uber-Driver-Pulse-Hackathon/
 <img width="1814" height="811" alt="image" src="https://github.com/user-attachments/assets/e705d157-fcf2-48a9-bc2a-a1c9008cf99e" />
 <img width="1819" height="248" alt="image" src="https://github.com/user-attachments/assets/29883329-1cc8-4612-a2b3-5a346fb1798e" />
 
+## Architecture in-words
 
-
-
-
-## Documentation
+- Initially the driver visits the site, enter his name, start time(which is set to current time), end time , earning goal and "starts"  his shift. This action
+	- **calls Shift Service** which "stores" this information in **Driver Repository**
+- Then the driver generates rides. This
+	- **calls Ride Request Generator service** which generates rides between a random number from 6 - 10, and forms a ride request(we have already given a prebuilt array of 15 locations on mumbai to choose pickup and dropoff from).
+	- Each **ride request is an entity (model)** that gets  a random ride-request-id, picks up random coordinates, find distance between them and calculates fare. We estimate the duration of the ride-request.
+	- Each ride-request gets "**stored**" in **Ride Request Repository**
+- The Driver can accept or reject a ride request
+	- On rejecting : the ride request is "removed" from ride Request repository
+- The driver accepts a ride Request. This
+	- **calls Ride Service** that converts ride-request into ride, each ride is given a unique id, alloted a driver( i.e . driver_id) , change it's status as **_ONGOING_**.
+	- The information of driver and ride(driver id and ride id) is **stored in Driver Repository and Ride Repository**
+- Now the simulation takes place, random stress signals are generated at an interval of 30 seconds. This is handled by **calling Ride Simulation Scheduler**(it ticks every 30 seconds and is implemented via _thread sleep_)
+- **Sensor Simulator Service** generates acceleration Reading and generates audio Reading(when called in every 30 seconds).
+- This creates **new instance** of_ Audio Data_ and _Motion Data_
+- Now each of this instance is created in new **instance of Sensor Reading**, and a timestamp is alloted to Sensor Reading
+- **Stress Score Service** -
+	- uses Stress Snapshot to calculate AudioScore and MotionScore, and CombinedScore.
+	- Searches for flags by comparing flag-thresholds.
+	- At this instant, we also compute current and target earning velocity by **model Earning Velocity** that stores the two velocities along with velocity delta and pace status(ahead or on track or critical)
+- All this is logged by **CSVLogger** into required target CSVS
+- While Logging, We use **enums** to classify and 
+	- allot motion, audio, stress flags to the Ride
+	- classify the pace_status (ahead, on track, behin, critical).
+- When a driver ends his ride (it automatically ends after duration of ride is complete, but driver can end it on his end too).
+	- Ride Service is called to mark the ride's status as *COMPLETED*
+    - His shift is marked as _ENDED_ by calling **ShiftService**
+	- Driver's current Earnings are increased.
+	- **Stress-Rating-Service **
+		- calculates entire ride's stress scores(motion, audio and combined)
+		- chooses amongst 4 different strategies provided(by default - it is average)
+	- Data logging is taken care of by **CSVLogger**
+	- Ride Simulation Scheduler is halted.
+	- Driver is displayed the combined score and is **provided a feedback.**
 
 
 #### For in-depth Documentation of each designPattern, please visit [docs](/docs)
