@@ -83,6 +83,12 @@ Uber-Driver-Pulse-Hackathon/
 
 ---
 ## Architecture Diagram
+<img width="1834" height="940" alt="image" src="https://github.com/user-attachments/assets/432c2149-6c75-4126-95f7-f3c276e8d55f" />
+<img width="1814" height="811" alt="image" src="https://github.com/user-attachments/assets/e705d157-fcf2-48a9-bc2a-a1c9008cf99e" />
+<img width="1819" height="248" alt="image" src="https://github.com/user-attachments/assets/29883329-1cc8-4612-a2b3-5a346fb1798e" />
+
+
+
 
 
 ## Documentation
