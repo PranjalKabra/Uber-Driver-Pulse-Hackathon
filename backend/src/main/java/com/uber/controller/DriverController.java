@@ -66,10 +66,11 @@ public class DriverController {
     private final WeightedStressStrategy weightedStressStrategy;
     private final PeakStressStrategy peakStressStrategy;
 
-    private static final String FLAGGED_LOG = "uber/log/flagged_moments.csv";
-    private static final String RIDE_LOG    = "uber/log/ride_summary_log.csv";
-    private static final String AUDIO_LOG   = "uber/log/audio_sensor_log.csv";
-    private static final String MOTION_LOG  = "uber/log/motion_sensor_log.csv";
+    private static final String FLAGGED_LOG = "backend/log/flagged_moments.csv";
+    private static final String RIDE_LOG    = "backend/log/ride_summary_log.csv";
+    private static final String AUDIO_LOG   = "backend/log/audio_sensor_log.csv";
+    private static final String MOTION_LOG  = "backend/log/motion_sensor_log.csv";
+    private static final String EV_LOG  = "backend/log/earning_velocity_log.csv";
 
     public DriverController(DriverRepository driverRepo,
                             RideRepository rideRepo,
@@ -450,6 +451,9 @@ public class DriverController {
     public ResponseEntity<String> downloadMotionLog() {
         return serveCsv(MOTION_LOG, "motion_sensor_log.csv");
     }
+
+    @GetMapping("/admin/csv/earning-velocity-log")
+    public ResponseEntity<String> downloadEVLog() { return serveCsv(EV_LOG, "earning_velocity_log.csv"); }
 
     private ResponseEntity<String> serveCsv(String filePath, String downloadName) {
         try {
