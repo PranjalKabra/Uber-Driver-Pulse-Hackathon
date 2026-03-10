@@ -123,7 +123,7 @@ Uber-Driver-Pulse-Hackathon/
 	- Driver is displayed the combined score and is **provided a feedback.**
 
 
-#### For in-depth Documentation of each designPattern, please visit [docs](/docs)
+#### For in-depth Documentation of each designPattern, please visit [docs](/System_Architecture/docs)
 ---
 ## Run Locally
 ### Prerequisites
