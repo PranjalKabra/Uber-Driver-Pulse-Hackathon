@@ -96,11 +96,6 @@ Uber-Driver-Pulse-Hackathon/
 │   │   │   ├── repository/               # In-memory data store
 │   │   │   ├── strategy/                 # Stress rating strategies
 │   │   │   └── enums/                    # Status enums
-│   │   ├── log/                          # CSV logs (auto-generated)
-│   │   │   ├── flagged_moments.csv
-│   │   │   ├── ride_summary_log.csv
-│   │   │   ├── audio_sensor_log.csv
-│   │   │   └── motion_sensor_log.csv
 │   │   ├── Dockerfile                    # Docker config for Render deployment
 │   │   └── pom.xml                       # Maven dependencies
 │   │
