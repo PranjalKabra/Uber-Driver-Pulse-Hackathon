@@ -83,7 +83,7 @@ function CsvDownloadSection() {
   async function downloadCsv(file) {
     setDownloading(file.id);
     try {
-      const res = await fetch('/api' + file.endpoint);
+      const res = await apiGet(file.endpoint);
       if (!res.ok) throw new Error('Failed to fetch');
       const text = await res.text();
       // Create blob and trigger download
