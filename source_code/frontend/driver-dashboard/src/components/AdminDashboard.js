@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { apiGet } from '../api';
+import { apiGet, BASE } from '../api';
 import { Badge, Card, StatCard, SectionHeader, Btn, Empty, Spinner, Table, MonoLabel } from './UI';
 
 function stressColor(r) {
@@ -83,7 +83,7 @@ function CsvDownloadSection() {
   async function downloadCsv(file) {
     setDownloading(file.id);
     try {
-      const res = await apiGet(file.endpoint);
+      const res = await fetch(BASE + file.endpoint);
       if (!res.ok) throw new Error('Failed to fetch');
       const text = await res.text();
       // Create blob and trigger download
