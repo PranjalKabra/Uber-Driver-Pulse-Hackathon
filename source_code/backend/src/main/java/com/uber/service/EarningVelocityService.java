@@ -25,6 +25,13 @@ public class EarningVelocityService {
         double hoursLeft = shift.getHoursRemaining();
 
         double currentVelocity  = (hoursWorked > 0) ? earned / hoursWorked  : 0.0;
+        if(earned >= target){
+            EarningVelocity ev = new EarningVelocity(currentVelocity, 0.0, PaceStatus.AHEAD);
+            driver.getEarningGoal().setEarningVelocity(ev);
+            csvLogger.logEarningVelocity(ev, driver, driver.getCurrentShift());
+            System.out.println("[EarningVelocityService] Goal already met — " + ev.getSummary());
+            return ev;
+        }
         double requiredVelocity = (hoursLeft > 0) ? (target - earned) / hoursLeft : Double.MAX_VALUE;
 
         PaceStatus paceStatus = derivePaceStatus(currentVelocity, requiredVelocity);
@@ -45,7 +52,7 @@ public class EarningVelocityService {
     }
 
     private PaceStatus derivePaceStatus(double current, double required) {
-        if (required <= 0 || required == Double.MAX_VALUE) return PaceStatus.CRITICAL;
+//        if (required <= 0 || required == Double.MAX_VALUE) return PaceStatus.CRITICAL;
         double ratio = current / required;
         if(ratio > 1.10) return PaceStatus.AHEAD;
         else if (ratio > 0.90) return PaceStatus.ON_TRACK;
