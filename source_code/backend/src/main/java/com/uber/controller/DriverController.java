@@ -119,7 +119,6 @@ public class DriverController {
         LocalDateTime shiftEnd = LocalDateTime.now().plusHours(shiftHours);
         shiftService.startShift(driver, shiftEnd);
 
-        driver.setEarningGoal(new EarningGoal(earningGoal));
         driver.getEarningGoal().setEarningVelocity(velocityService.calculate(driver, driver.getCurrentShift(), LocalDateTime.now()));
 
         return ResponseEntity.ok(Map.of(
